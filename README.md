@@ -5,7 +5,14 @@ La aplicacion funciona corectamente hace uso de typeOrm conectando a mysql debe 
 
 la configuración de la conexión se hace en el archivo
 
-src\app.module.ts
+src/typeorm/data-source.ts
+
+se puede agregar un .env
+DB_TYPE==mysql
+DB_PORT=3306
+process.env.DB_USER=root
+DB_PASSWORD=
+DB_NAME=uni
 
 se requiere tener instalado node luego desde consola dar el siguiente comando desde la carpeta reiz del proyecto
 

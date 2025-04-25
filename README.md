@@ -1,7 +1,7 @@
 
-# Gestion de inventarios RIWI
+# Gestion de materias INTERAPIDISIMO
 
-La aplicacion funciona corectamente hace uso de typeOrm conectando a mysql debe tener la base de datos uni creada y habilitada para persistir la data de la aplicación propuesta
+La aplicacion funciona corectamente hace uso de typeOrm conectando a mysql debe tener la base de datos llamada uni creada y habilitada para persistir la data de la aplicación propuesta, el schema, las relaciones y tablas se crean apenas se ejecuta el backend
 
 la configuración de la conexión se hace en el archivo
 
@@ -14,19 +14,20 @@ npm i
 luego levantar la alicación con el comando
 npm run start:dev
 
-para interactuar, poblar, crear o borrar los datos de prueba de la aplicación se puede hacer uso del archivo de 
-[documentación ](https://drive.google.com/file/d/1c-qE59XwDsXviS6NodWtff_yWHO67p_O/view?usp=sharing)
+para interactuar, poblar, crear o borrar los datos de prueba "seeders" de la aplicación se puede hacer uso de la ruta  http://localhost:3000/api/seeders por método POST
+
+
+[documentación ](https://docs.google.com/document/d/1MuU0so2PweCxYx0mYAnwmEbynoKC96YNq425AeOwbeU/edit?usp=sharing)
 
 una breve descripcion de la documentación
 
-Documentación app de gestión de inventarios RIWI
+Documentación app de gestión de materias INTERAPIDISIMO
 
 Funcionalidades adicionales realizadas: 
 
--> un usuario responsable se puede asignar a una bodega
-desde la creación de la bodega pero sin ser obligatorio enviando el id_responsable que es el mismo id del usuario que va a ser el responsable de dicha bodega
+-> un profesor se logea y puede gestionar la creación o borrado de clase, asignar las clases a los profesores, la aplicación cuenta con usabilidad UX pare evitar errores
 
--> los datos de prueba se pueden poblar por ruta POST http://localhost:3000/seeders
+-> los datos de prueba se pueden poblar por ruta POST http://localhost:3000/api/seeders
 indicando los números que se desean crear de cada uno
 {
     "cursos": ["Maths", "Science", "Programming", "Data Science", "Physics", "Chemistry", "Biology", "History", "Geography", "Literature"],
@@ -38,25 +39,10 @@ indicando los números que se desean crear de cada uno
 
 
 URL de la API documentada mediante postman
- https://documenter.getpostman.com/view/12905489/2s9Y5SWm3v#fe7508d8-bc9d-45f1-bb95-4ed0a8b21808
+ https://app.getpostman.com/join-team?invite_code=8e0994319b2fa66ff559e18aefae8eee8043bf73a6d499eba7f4b6f7dc7f9dc4&target_code=1b8ebd02b83be56a759ef69d0d7c920c
 
 
-descripción endpoints de la API
-
-POST /auth/login/student: Login para estudiantes
-POST /auth/login/teacher: Login para profesores
-POST /auth/check-email
-
-
-POST /teachers - Crear profesor
-GET /teachers - Listar profesores
-GET /teachers/:id - Obtener profesor específico
-PUT /teachers/:id - Actualizar profesor
-DELETE /teachers/:id - Eliminar profesor
-Para Subjects:
-POST /subjects - Crear materia
-GET /subjects - Listar materias
-GET /subjects/:id - Obtener materia específica
-PUT /subjects/:id - Actualizar materia
-DELETE /subjects/:id - Eliminar materia
-
+para iniciar el servidor frontend es necesario 
+cd client
+ng serve
+para levantar angular

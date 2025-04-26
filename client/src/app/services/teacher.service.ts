@@ -6,10 +6,24 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class TeacherService {
+  private apiUrl = '/api/teachers';
+
   constructor(private http: HttpClient) {}
 
-  getTeachers() {
-    return this.http.get<any[]>('/api/teachers');
+  getAllTeachers(): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl);
+  }
+
+  createTeacher(teacher: any): Observable<any> {
+    return this.http.post(this.apiUrl, teacher);
+  }
+
+  updateTeacher(id: number, teacher: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, teacher);
+  }
+
+  deleteTeacher(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
   private getHeaders(): HttpHeaders {

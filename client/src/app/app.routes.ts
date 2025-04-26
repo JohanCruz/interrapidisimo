@@ -2,7 +2,8 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
 import { SubjectListComponent } from './components/subjects/subject-list/subject-list.component';
 import { StudentSubjectsComponent } from './components/subjects/student-subjects/student-subjects.component';
-import { authGuard } from './guards/auth.guard';
+import { TeacherListComponent } from './components/teachers/teacher-list/teacher-list.component';
+import { authGuard, teacherGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -16,5 +17,10 @@ export const routes: Routes = [
     path: 'student-subjects', 
     component: StudentSubjectsComponent,
     canActivate: [authGuard]
+  },
+  { 
+    path: 'teachers', 
+    component: TeacherListComponent,
+    canActivate: [teacherGuard]
   }
 ];

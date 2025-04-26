@@ -18,8 +18,7 @@ export class Student {
   @Column({ nullable: true })
   token: string;
 
-  @ManyToMany(() => Subject)
-  @JoinTable()
+  @ManyToMany(() => Subject, subject => subject.students)
   subjects: Subject[];
 
   @Column({ default: 0 })

@@ -39,17 +39,14 @@ export class SubjectsService {
 
   async findAll() {
     return this.subjectsRepository.find({
-      relations: {
-        teacher: true,
-        students: true
-      },
+      relations: ['students', 'teacher'],
       select: {
-        teacher: {
+        students:{
           id: true,
           name: true,
           email: true
         },
-        students: {
+        teacher: {
           id: true,
           name: true,
           email: true

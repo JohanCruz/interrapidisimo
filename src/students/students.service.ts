@@ -17,20 +17,21 @@ export class StudentsService {
   ) {}
 
   async getEnrolledSubjects(studentId: number) {
+    
     const student = await this.studentsRepository.findOne({
       where: { id: studentId },
-      relations: {
-        subjects: {
-          teacher: true,
-          students: true
-        }
-      }
+      relations: ['subjects',
+      'subjects.teacher',
+      'subjects.students'
+      ],
     });
-
+    
+    
     if (!student) {
       throw new NotFoundException('Estudiante no encontrado');
     }
-
+    
+    
     return student.subjects.map(subject => ({
       id: subject.id,
       name: subject.name,

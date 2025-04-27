@@ -42,6 +42,7 @@ export class SeedersService {
           name: nombreCurso,
           code: `CURSO${index + 1}`,
           teacher: teachers[index % teachers.length], // Distribuir materias entre Teacheres
+          credits:3,
         });
         return await this.subjectsRepository.save(subject);
       }),

@@ -65,4 +65,12 @@ export class AuthService {
       return null;
     }
   }
+
+  register(userData: any, type: 'student' | 'teacher') {
+  if (type === 'student') {
+    return this.http.post('/api/students/registro', userData);
+  } else {
+    return this.http.post('/api/teachers', userData);
+  }
+}
 }

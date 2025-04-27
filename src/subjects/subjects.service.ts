@@ -130,13 +130,37 @@ export class SubjectsService {
   async remove(id: number) {
     const subject = await this.subjectsRepository.findOne({
         where: { id },
-        relations: { teacher: true, students: true }
+        relations: {
+            teacher: true,
+            students: true
+        }
     });
+
     if (!subject) {
         throw new NotFoundException(`Materia con ID ${id} no encontrada`);
     }
-    await this.subjectsRepository.remove(subject);
-    return { message: `Materia ${subject.name} eliminada correctamente` };
+
+    try {
+        // Limpia las relaciones explícitamente
+        subject.students = [];
+        await this.subjectsRepository.save(subject);  // Guarda para limpiar relaciones
+
+        // Ahora sí elimina la materia
+        await this.subjectsRepository.remove(subject);
+
+        return {
+            message: `Materia ${subject.name} eliminada correctamente`,
+            deletedSubject: {
+                id: subject.id,
+                name: subject.name,
+                teacherId: subject.teacher?.id,
+                studentsCount: subject.students?.length || 0
+            }
+        };
+    } catch (error) {
+        console.error('Error al eliminar la materia:', error);
+        throw new Error(`Error al eliminar la materia: ${error.message}`);
+    }
   }
 
   // Método adicional para obtener estadísticas de la materia

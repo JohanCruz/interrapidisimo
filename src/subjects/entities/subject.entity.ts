@@ -16,11 +16,14 @@ export class Subject {
   @Column()
   credits: number;
 
-  @ManyToOne(() => Teacher, teacher => teacher.subjects)
+  @ManyToOne(() => Teacher, teacher => teacher.subjects, { 
+    onDelete: 'SET NULL'     
+  })
   @JoinColumn({ name: 'teacher_id' })
   teacher: Teacher;
 
-  @ManyToMany(() => Student, student => student.subjects)
+  @ManyToMany(() => Student, student => student.subjects, {
+    onDelete: 'CASCADE'})
   @JoinTable()
   students: Student[];
 } 

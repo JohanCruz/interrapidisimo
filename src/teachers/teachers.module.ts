@@ -18,6 +18,6 @@ import { UsersModule } from '../users/users.module';
 })
 export class TeachersModule {
   constructor() {
-    console.log('TeachersModule initialized');
+    //console.log('TeachersModule initialized');
   }
 } 

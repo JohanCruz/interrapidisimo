@@ -15,10 +15,7 @@ export class TeachersService {
     private subjectRepository: Repository<Subject>,
     private usersService: UsersService,
   ) {
-    console.log('TeachersService constructor called');
-    console.log('TeacherRepository:', !!this.teacherRepository);
-    console.log('SubjectRepository:', !!this.subjectRepository);
-    console.log('UsersService:', !!this.usersService);
+    
   }
 
   private transformTeacherResponse(teacher: Teacher) {

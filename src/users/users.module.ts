@@ -17,6 +17,6 @@ import { UsersService } from './users.service';
 })
 export class UsersModule {
   constructor() {
-    console.log('UsersModule initialized');
+    //console.log('UsersModule initialized');
   }
 } 

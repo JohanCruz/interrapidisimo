@@ -31,6 +31,7 @@ import { AuthService } from '../../services/auth.service';
             <input
               formControlName="email"
               type="email"
+              autocomplete="email"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
               placeholder="tu@email.com"
             />
@@ -41,6 +42,7 @@ import { AuthService } from '../../services/auth.service';
             <input
               formControlName="password"
               type="password"
+              autocomplete="new-password"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
               placeholder="********"
             />

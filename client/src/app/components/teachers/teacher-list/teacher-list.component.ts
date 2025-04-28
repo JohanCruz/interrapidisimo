@@ -103,12 +103,14 @@ export class TeacherListComponent implements OnInit {
   showModal = false;
   isEditing = false;
   teacherForm: FormGroup;
+  editingId: number | null = null;
 
   constructor(
     private fb: FormBuilder,
     private teacherService: TeacherService
   ) {
     this.teacherForm = this.fb.group({
+      id: [null],
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
@@ -132,13 +134,15 @@ export class TeacherListComponent implements OnInit {
 
   openModal(teacher?: any) {
     this.isEditing = !!teacher;
+    this.editingId = teacher?.id || null;
+    
     if (teacher) {
       this.teacherForm.patchValue({
         id: teacher.id,
         name: teacher.name,
         email: teacher.email
       });
-      this.teacherForm.get('password')?.setValidators(this.isEditing ? [] : [Validators.required]);
+      this.teacherForm.get('password')?.setValidators([]);
       this.teacherForm.get('password')?.updateValueAndValidity();
     } else {
       this.teacherForm.reset();
@@ -151,20 +155,21 @@ export class TeacherListComponent implements OnInit {
   closeModal() {
     this.showModal = false;
     this.teacherForm.reset();
+    this.editingId = null;
+    this.isEditing = false;
   }
 
   onSubmit() {
     if (this.teacherForm.valid) {
-      if (this.isEditing) {
-        const id = this.teacherForm.get('id')?.value;
-        const teacherData = {
-          name: this.teacherForm.get('name')?.value,
-          email: this.teacherForm.get('email')?.value,
-          ...(this.teacherForm.get('password')?.value ? 
-              { password: this.teacherForm.get('password')?.value } : {})
-        };
-        
-        this.teacherService.updateTeacher(id, teacherData).subscribe({
+      const formData = this.teacherForm.value;
+      const teacherData = {
+        name: formData.name,
+        email: formData.email,
+        ...(formData.password ? { password: formData.password } : {})
+      };
+
+      if (this.isEditing && this.editingId) {
+        this.teacherService.update(this.editingId, teacherData).subscribe({
           next: (response) => {
             console.log('Profesor actualizado:', response);
             this.loadTeachers();
@@ -175,7 +180,7 @@ export class TeacherListComponent implements OnInit {
           }
         });
       } else {
-        this.teacherService.createTeacher(this.teacherForm.value).subscribe({
+        this.teacherService.create(teacherData).subscribe({
           next: (response) => {
             console.log('Profesor creado:', response);
             this.loadTeachers();

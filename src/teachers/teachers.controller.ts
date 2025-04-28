@@ -1,50 +1,36 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common';
 import { TeachersService } from './teachers.service';
-import { AuthService } from '../auth/auth.service';
+import { CreateTeacherDto } from './dto/create-teacher.dto';
+import { UpdateTeacherDto } from './dto/update-teacher.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('teachers')
+@UseGuards(JwtAuthGuard)
 export class TeachersController {
-  constructor(
-    private readonly teachersService: TeachersService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly teachersService: TeachersService) {}
 
   @Post()
-  async create(@Body() teacherData: any) {
-    if (teacherData.password.length !== 5) {
-      throw new BadRequestException('La contraseña debe tener exactamente 5 caracteres');
-    }
-    await this.authService.checkEmailExists(teacherData.email);
-    return this.teachersService.create(teacherData);
+  create(@Body() createTeacherDto: CreateTeacherDto) {
+    return this.teachersService.create({ userId: createTeacherDto.userId });
   }
 
   @Get()
   findAll() {
-    return this.teachersService.findAll({
-      relations: ['subjects'],
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        subjects: {
-          id: true
-        }
-      }
-    });
+    return this.teachersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.teachersService.findOne(id);
+  findOne(@Param('id') id: string) {
+    return this.teachersService.findOne(+id);
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateData: any) {
-    return this.teachersService.update(id, updateData);
+  update(@Param('id') id: string, @Body() updateTeacherDto: UpdateTeacherDto) {
+    return this.teachersService.update(+id, updateTeacherDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.teachersService.remove(id);
+  @Get(':id/subjects')
+  getTeacherSubjects(@Param('id') id: string) {
+    return this.teachersService.getTeacherSubjects(+id);
   }
 }

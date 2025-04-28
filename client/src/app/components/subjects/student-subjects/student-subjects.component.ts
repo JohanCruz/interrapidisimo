@@ -21,7 +21,8 @@ import { Router } from '@angular/router';
             <div class="border-b pb-2 mb-2">
               <h4 class="font-bold text-lg">{{subject.name}}</h4>
               <p class="text-gray-600">Código: {{subject.code}}</p>
-              <p class="text-gray-600">Profesor: {{subject.teacher?.name}}</p>
+              <p class="text-gray-600">Profesor: {{subject.teacher?.user?.name}}</p>
+              <p class="text-gray-600">Créditos: {{subject.credits}}</p>
             </div>
             
             <!-- Compañeros de clase -->
@@ -29,7 +30,7 @@ import { Router } from '@angular/router';
               <h5 class="font-semibold text-sm text-gray-700">Compañeros de clase:</h5>
               <ul class="list-disc pl-5 text-sm">
                 <li *ngFor="let student of subject.students">
-                  {{student.name}}
+                  {{student.user?.name}}
                 </li>
               </ul>
             </div>
@@ -50,7 +51,7 @@ import { Router } from '@angular/router';
                class="bg-white p-4 rounded-lg shadow-md">
             <h4 class="font-bold text-lg">{{subject.name}}</h4>
             <p class="text-gray-600">Código: {{subject.code}}</p>
-            <p class="text-gray-600">Profesor: {{subject.teacher?.name}}</p>
+            <p class="text-gray-600">Profesor: {{subject.teacher?.user?.name}}</p>
             <p class="text-gray-600">Créditos: {{subject.credits}}</p>
             
             <button (click)="enrollInSubject(subject.id)" 

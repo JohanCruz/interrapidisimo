@@ -37,4 +37,9 @@ export class SubjectsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.subjectsService.remove(id);
   }
+
+  @Get('available')
+  getAvailableSubjects() {
+    return this.subjectsService.getAvailableSubjects();
+  }
 }

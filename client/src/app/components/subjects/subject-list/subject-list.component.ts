@@ -7,11 +7,12 @@ import { CommonModule } from '@angular/common';
 import { TeacherService } from '../../../../../client/src/app/services/teacher.service';
 import { Subject } from '../../../interfaces/subject.interface'; 
 import { Router } from '@angular/router';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'app-subject-list',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, FontAwesomeModule],
   template: `
     <div class="container mx-auto p-4">
       <!-- Vista de Profesor -->
@@ -54,53 +55,60 @@ import { Router } from '@angular/router';
         </div>
 
         <!-- Modal para agregar/editar -->
-        <div *ngIf="showModal" class="fixed inset-0 overflow-y-auto z-50">
+        <div *ngIf="showModal" class="fixed inset-0 overflow-y-auto z-[9999]">
           <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <!-- Overlay/Background -->
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeModal()"></div>
 
             <!-- Modal Panel -->
             <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 class="text-2xl font-bold mb-6 text-gray-900">
-                  {{editingId ? 'Editar' : 'Agregar'}} Materia
-                </h3>
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="text-2xl font-bold text-gray-900">
+                    {{editingId ? 'Editar' : 'Agregar'}} Materia
+                  </h3>
+                  <button (click)="closeModal()" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
                 
                 <form [formGroup]="subjectForm" (ngSubmit)="saveSubject()" class="space-y-4">
-                  <div>
-                    <label class="block text-gray-700 mb-2">Nombre</label>
-                    <input formControlName="name" 
-                           class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Nombre de la materia">
-                  </div>
+                  <div class="grid grid-cols-1 gap-4">
+                    <div>
+                      <label class="block text-gray-700 font-medium mb-2">Nombre de la Materia</label>
+                      <input formControlName="name" 
+                             class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                             placeholder="Ej: Programación Web">
+                    </div>
 
-                  <div>
-                    <label class="block text-gray-700 mb-2">Código</label>
-                    <input formControlName="code" 
-                           class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Código de la materia">
-                  </div>
+                    <div>
+                      <label class="block text-gray-700 font-medium mb-2">Código de la Materia</label>
+                      <input formControlName="code" 
+                             class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                             placeholder="Ej: PW101">
+                    </div>
 
-                  <div>
-                    <label class="block text-gray-700 mb-2">Créditos</label>
-                    <input type="number" 
-                           formControlName="credits"
-                           class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Número de créditos">
-                  </div>
+                    <div>
+                      <label class="block text-gray-700 font-medium mb-2">Créditos</label>
+                      <input type="number" 
+                             formControlName="credits"
+                             class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                             placeholder="Ej: 3">
+                    </div>
 
-                  <div>
-                    <label class="block text-gray-700 mb-2">Profesor</label>
-                    <select formControlName="teacher_id" 
-                            (change)="onTeacherSelect($event)"
-                            class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option [ngValue]="null">Sin profesor</option>
-                      <option *ngFor="let teacher of teachers" 
-                              [value]="teacher.id"
-                              [disabled]="teacher.subjectsCount >= 2">
-                        {{teacher.name}} ({{teacher.subjectsCount || 0}} materias)
-                      </option>
-                    </select>
+                    <div>
+                      <label class="block text-gray-700 font-medium mb-2">Profesor</label>
+                      <select formControlName="teacher_id" 
+                              (change)="onTeacherSelect($event)"
+                              class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option [ngValue]="null">Sin profesor</option>
+                        <option *ngFor="let teacher of teachers" 
+                                [value]="teacher.id"
+                                [disabled]="teacher.subjectsCount >= 2">
+                          {{teacher.name}} ({{teacher.subjectsCount || 0}} materias)
+                        </option>
+                      </select>
+                    </div>
                   </div>
                   
                   <div class="flex justify-end gap-3 mt-6">
@@ -112,7 +120,7 @@ import { Router } from '@angular/router';
                     <button type="submit"
                             [disabled]="!subjectForm.valid"
                             class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
-                      Guardar
+                      {{editingId ? 'Actualizar' : 'Guardar'}}
                     </button>
                   </div>
                 </form>
@@ -123,7 +131,7 @@ import { Router } from '@angular/router';
 
         <!-- Mensaje de error -->
         <div *ngIf="errorMessage" 
-             class="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50 animate-fade-in">
+             class="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-[9999] animate-fade-in">
           <div class="flex items-center">
             <span>{{ errorMessage }}</span>
             <button (click)="errorMessage = ''" 
@@ -190,7 +198,7 @@ import { Router } from '@angular/router';
 export class SubjectListComponent implements OnInit {
   subjects: Subject[] = [];
   showModal = false;
-  subjectForm: FormGroup;
+  subjectForm!: FormGroup;
   isTeacher = false;
   editingId: number | null = null;
   teachers: any[] = [];
@@ -205,10 +213,14 @@ export class SubjectListComponent implements OnInit {
     private teacherService: TeacherService,
     private router: Router
   ) {
+    this.initializeForm();
+  }
+
+  private initializeForm() {
     this.subjectForm = this.fb.group({
-      name: ['', Validators.required],
-      code: ['', Validators.required],
-      credits: ['', [Validators.required, Validators.min(1)]],
+      name: ['', [Validators.required, Validators.minLength(3)]],
+      code: ['', [Validators.required, Validators.minLength(2)]],
+      credits: [3, [Validators.required, Validators.min(1)]],
       teacher_id: [null]
     });
 

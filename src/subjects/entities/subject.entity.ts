@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 import { Teacher } from '../../teachers/entities/teacher.entity';
 import { Student } from '../../students/entities/student.entity';
 
@@ -16,14 +16,10 @@ export class Subject {
   @Column()
   credits: number;
 
-  @ManyToOne(() => Teacher, teacher => teacher.subjects, { 
-    onDelete: 'SET NULL'     
-  })
-  @JoinColumn({ name: 'teacher_id' })
+  @ManyToOne(() => Teacher, teacher => teacher.subjects)
   teacher: Teacher;
 
-  @ManyToMany(() => Student, student => student.subjects, {
-    onDelete: 'CASCADE'})
+  @ManyToMany(() => Student, student => student.subjects)
   @JoinTable()
   students: Student[];
 } 

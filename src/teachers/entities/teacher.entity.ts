@@ -1,23 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { Subject } from '../../subjects/entities/subject.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class Teacher {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  name: string;
+  @OneToOne(() => User, user => user.teacher)
+  @JoinColumn()
+  user: User;
 
-  @Column({ unique: true })
-  email: string;
-
-  @Column({ length: 60  })
-  password: string;
-
-  @Column({ nullable: true })
-  token: string;
-
-  @OneToMany(() => Subject, (subject) => subject.teacher) // Especifica el campo inverso
+  @OneToMany(() => Subject, subject => subject.teacher)
   subjects: Subject[];
+
+  @Column({ default: 0 })
+  totalSubjects: number;
 } 

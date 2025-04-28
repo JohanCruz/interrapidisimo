@@ -8,7 +8,7 @@ import { Teacher } from '../teachers/entities/teacher.entity';
 export class SubjectsService {
   constructor(
     @InjectRepository(Subject)
-    private subjectsRepository: Repository<Subject>,
+    private subjectRepository: Repository<Subject>,
     @InjectRepository(Teacher)
     private teacherRepository: Repository<Teacher>,
   ) {}
@@ -16,7 +16,7 @@ export class SubjectsService {
   private async validateTeacherSubjectsLimit(teacherId: number, currentSubjectId?: number): Promise<void> {
     if (!teacherId) return; // Si no hay profesor, no necesitamos validar
 
-    const subjectsCount = await this.subjectsRepository.count({
+    const subjectsCount = await this.subjectRepository.count({
       where: {
         teacher: { id: teacherId },
         ...(currentSubjectId && { id: Not(currentSubjectId) })
@@ -28,164 +28,146 @@ export class SubjectsService {
     }
   }
 
-  async create(subjectData: any) {
-    if (subjectData.teacher?.id) {
-      await this.validateTeacherSubjectsLimit(subjectData.teacher.id);
+  async create(createSubjectDto: any) {
+    const teacher = await this.teacherRepository.findOne({
+      where: { id: createSubjectDto.teacherId },
+      relations: ['user']
+    });
+
+    if (!teacher) {
+      throw new NotFoundException('Profesor no encontrado');
     }
 
-    const subject = this.subjectsRepository.create(subjectData);
-    return await this.subjectsRepository.save(subject);
+    const subject = this.subjectRepository.create({
+      ...createSubjectDto,
+      teacher
+    });
+
+    await this.teacherRepository.update(teacher.id, {
+      totalSubjects: teacher.totalSubjects + 1
+    });
+
+    return this.subjectRepository.save(subject);
   }
 
   async findAll() {
-    return this.subjectsRepository.find({
-      relations: ['students', 'teacher'],
-      select: {
-        students:{
-          id: true,
-          name: true,
-          email: true
-        },
-        teacher: {
-          id: true,
-          name: true,
-          email: true
-        }
-      }
+    console.log('Obteniendo todas las materias');
+    
+    const subjects = await this.subjectRepository.find({
+      relations: [
+        'teacher',
+        'teacher.user',
+        'students',
+        'students.user'
+      ]
     });
+
+    console.log('Materias encontradas:', subjects.length);
+    subjects.forEach(subject => {
+      console.log('Detalles de materia:', {
+        id: subject.id,
+        name: subject.name,
+        credits: subject.credits,
+        teacherId: subject.teacher?.id,
+        teacherName: subject.teacher?.user?.name,
+        studentsCount: subject.students?.length
+      });
+    });
+
+    return subjects;
   }
 
   async findOne(id: number) {
-    const subject = await this.subjectsRepository.findOne({
+    console.log('Obteniendo materia con ID:', id);
+    
+    const subject = await this.subjectRepository.findOne({
       where: { id },
-      relations: {
-        teacher: true,
-        students: true
-      },
-      select: {
-        id: true,
-        name: true,
-        code: true,
-        credits: true,
-        teacher: {
-          id: true,
-          name: true,
-          email: true
-        },
-        students: {
-          id: true,
-          name: true,
-          email: true
-        }
-      }
+      relations: ['teacher', 'teacher.user', 'students', 'students.user']
     });
 
     if (!subject) {
-      throw new NotFoundException(`Materia con ID ${id} no encontrada`);
+      console.log('Materia no encontrada');
+      throw new NotFoundException('Materia no encontrada');
     }
 
-    // Formatear la respuesta para mejor legibilidad
-    return {
+    console.log('Materia encontrada:', {
       id: subject.id,
       name: subject.name,
-      code: subject.code,
       credits: subject.credits,
-      teacher: subject.teacher ? {
-        id: subject.teacher.id,
-        name: subject.teacher.name,
-        email: subject.teacher.email
-      } : null,
-      studentsEnrolled: subject.students ? subject.students.map(student => ({
-        id: student.id,
-        name: student.name,
-        email: student.email
-      })) : [],
-      totalStudents: subject.students ? subject.students.length : 0
-    };
+      teacherId: subject.teacher?.id,
+      teacherName: subject.teacher?.user?.name,
+      studentsCount: subject.students?.length
+    });
+
+    return subject;
   }
 
-  async update(id: number, updateData: any) {
-    const subject = await this.subjectsRepository.findOne({
-      where: { id },
-      relations: { teacher: true }
-    });
+  async getSubjectStats(id: number) {
+    const subject = await this.findOne(id);
+    return subject;
+  }
 
-    if (!subject) {
-      throw new NotFoundException(`Materia con ID ${id} no encontrada`);
+  async update(id: number, updateSubjectDto: any) {
+    const subject = await this.findOne(id);
+
+    if (updateSubjectDto.teacherId) {
+      const teacher = await this.teacherRepository.findOne({
+        where: { id: updateSubjectDto.teacherId },
+        relations: ['user']
+      });
+
+      if (!teacher) {
+        throw new NotFoundException('Profesor no encontrado');
+      }
+
+      // Actualizar totalSubjects del profesor anterior
+      await this.teacherRepository.update(subject.teacher.id, {
+        totalSubjects: subject.teacher.totalSubjects - 1
+      });
+
+      // Actualizar totalSubjects del nuevo profesor
+      await this.teacherRepository.update(teacher.id, {
+        totalSubjects: teacher.totalSubjects + 1
+      });
+
+      subject.teacher = teacher;
     }
 
-    if (updateData.teacher?.id) {
-      await this.validateTeacherSubjectsLimit(updateData.teacher.id, id);
-    }
-
-    // Si el profesor está siendo removido (teacher: null) no necesitamos validar
-    await this.subjectsRepository.save({
-      ...subject,
-      ...updateData
-    });
-
-    return this.findOne(id);
+    Object.assign(subject, updateSubjectDto);
+    return this.subjectRepository.save(subject);
   }
 
   async remove(id: number) {
-    const subject = await this.subjectsRepository.findOne({
-        where: { id },
-        relations: {
-            teacher: true,
-            students: true
-        }
+    const subject = await this.findOne(id);
+    
+    // Actualizar totalSubjects del profesor
+    await this.teacherRepository.update(subject.teacher.id, {
+      totalSubjects: subject.teacher.totalSubjects - 1
     });
 
-    if (!subject) {
-        throw new NotFoundException(`Materia con ID ${id} no encontrada`);
-    }
-
-    try {
-        // Limpia las relaciones explícitamente
-        subject.students = [];
-        await this.subjectsRepository.save(subject);  // Guarda para limpiar relaciones
-
-        // Ahora sí elimina la materia
-        await this.subjectsRepository.remove(subject);
-
-        return {
-            message: `Materia ${subject.name} eliminada correctamente`,
-            deletedSubject: {
-                id: subject.id,
-                name: subject.name,
-                teacherId: subject.teacher?.id,
-                studentsCount: subject.students?.length || 0
-            }
-        };
-    } catch (error) {
-        console.error('Error al eliminar la materia:', error);
-        throw new Error(`Error al eliminar la materia: ${error.message}`);
-    }
+    await this.subjectRepository.remove(subject);
+    return { message: 'Materia eliminada exitosamente' };
   }
 
-  // Método adicional para obtener estadísticas de la materia
-  async getSubjectStats(id: number) {
-    const subject = await this.subjectsRepository.findOne({
-      where: { id },
-      relations: { teacher: true, students: true }
+  async getAvailableSubjects() {
+    console.log('Obteniendo todas las materias disponibles');
+    
+    const subjects = await this.subjectRepository.find({
+      relations: ['teacher', 'teacher.user', 'students', 'students.user']
     });
-
-    if (!subject) {
-      throw new NotFoundException(`Materia con ID ${id} no encontrada`);
-    }
-
-    return {
-      subjectName: subject.name,
-      subjectCode: subject.code,
-      teacher: subject.teacher ? {
-        name: subject.teacher.name,
-        email: subject.teacher.email
-      } : 'Sin profesor asignado',
-      totalStudents: subject.students.length,
-      studentsEnrolled: subject.students.map(student => ({
-        name: student.name,
-        email: student.email
-      }))
-    };
+    
+    console.log('Materias encontradas:', subjects.length);
+    subjects.forEach(subject => {
+      console.log('Detalles de materia disponible:', {
+        id: subject.id,
+        name: subject.name,
+        credits: subject.credits,
+        teacherId: subject.teacher?.id,
+        teacherName: subject.teacher?.user?.name,
+        studentsCount: subject.students?.length
+      });
+    });
+    
+    return subjects;
   }
 }

@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { User } from '../users/entities/user.entity';
 import { Student } from '../students/entities/student.entity';
 import { Teacher } from '../teachers/entities/teacher.entity';
 import * as bcrypt from 'bcrypt';
@@ -9,10 +10,12 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     @InjectRepository(Student)
-    private studentsRepository: Repository<Student>,
+    private studentRepository: Repository<Student>,
     @InjectRepository(Teacher)
-    private teachersRepository: Repository<Teacher>,
+    private teacherRepository: Repository<Teacher>,
     private jwtService: JwtService,
   ) {}
 
@@ -25,78 +28,85 @@ export class AuthService {
   }
 
   async validateStudent(email: string, password: string) {
-    const student = await this.studentsRepository.findOne({ where: { email } });
-    if (!student || !(await this.comparePasswords(password, student.password))) {
+    const user = await this.userRepository.findOne({
+      where: { email },
+      relations: ['student']
+    });
+
+    if (!user || !user.student) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
-    return student;
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    return user;
   }
 
   async validateTeacher(email: string, password: string) {
-    console.log('Intentando validar profesor:', email);
-    const teacher = await this.teachersRepository.findOne({ 
+    const user = await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'password', 'name'] // Importante: incluir password
+      relations: ['teacher']
     });
 
-    console.log('Profesor encontrado:', teacher);
-
-    if (!teacher) {
-      console.log('Profesor no encontrado');
+    if (!user || !user.teacher) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, teacher.password);
-    console.log('¿Contraseña válida?:', isPasswordValid);
-
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      console.log('Contraseña incorrecta');
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    return teacher;
+    return user;
   }
 
   async loginStudent(email: string, password: string) {
-    const student = await this.validateStudent(email, password);
-    const payload = { sub: student.id, email: student.email, role: 'student' };
-    const token = this.jwtService.sign(payload);
+    const user = await this.validateStudent(email, password);
     
-    student.token = token;
-    await this.studentsRepository.save(student);
-    
-    return { token };
+    const token = this.jwtService.sign({
+      sub: user.id,
+      email: user.email
+    });
+
+    await this.userRepository.update(user.id, { token });
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      token,
+      studentId: user.student.id,
+      totalCredits: user.student.totalCredits
+    };
   }
 
   async loginTeacher(email: string, password: string) {
-    try {
-      const teacher = await this.validateTeacher(email, password);
-      const payload = { sub: teacher.id, email: teacher.email, role: 'teacher' };
-      const token = this.jwtService.sign(payload);
-      
-      // Actualizar el token en la base de datos
-      await this.teachersRepository.update(teacher.id, { token });
-      
-      return { 
-        token,
-        teacher: {
-          id: teacher.id,
-          name: teacher.name,
-          email: teacher.email
-        }
-      };
-    } catch (error) {
-      console.log('Error en login:', error);
-      throw new UnauthorizedException('Credenciales inválidas');
-    }
+    const user = await this.validateTeacher(email, password);
+    
+    const token = this.jwtService.sign({
+      sub: user.id,
+      email: user.email
+    });
+
+    await this.userRepository.update(user.id, { token });
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      token,
+      teacherId: user.teacher.id,
+      totalSubjects: user.teacher.totalSubjects
+    };
   }
 
   async checkEmailExists(email: string) {
-    const student = await this.studentsRepository.findOne({ where: { email } });
-    const teacher = await this.teachersRepository.findOne({ where: { email } });
-    
-    if (student || teacher) {
-      throw new BadRequestException('El correo electrónico ya está en uso');
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (user) {
+      throw new UnauthorizedException('El correo electrónico ya está en uso');
     }
     return false;
   }

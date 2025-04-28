@@ -12,7 +12,6 @@ export class SubjectsController {
 
   @Get()
   findAll() {
-    console.log('GET /subjects llamado');
     return this.subjectsService.findAll();
   }
 

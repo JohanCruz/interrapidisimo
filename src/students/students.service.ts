@@ -178,19 +178,28 @@ export class StudentsService {
   }
 
   async obtenerCompanerosClase(studentId: number) {
+    // Busca el estudiante y sus materias
     const student = await this.studentsRepository.findOne({
       where: { id: studentId },
       relations: ['subjects', 'subjects.students'],
     });
-
-    const companerosPorMateria = {};
-    for (const subject of student.subjects) {
-      companerosPorMateria[subject.name] = subject.students
-        .filter(e => e.id !== studentId)
-        .map(e => e.name);
+  
+    if (!student) {
+      throw new NotFoundException('Estudiante no encontrado');
     }
-
-    return companerosPorMateria;
+  
+    // Obtén los IDs de las materias del estudiante
+    const subjectIds = student.subjects.map(subject => subject.id);
+  
+    // Busca todos los estudiantes inscritos en esas materias (excepto el propio estudiante)
+    const classmates = await this.studentsRepository
+      .createQueryBuilder('student')
+      .leftJoinAndSelect('student.subjects', 'subject')
+      .where('subject.id IN (:...subjectIds)', { subjectIds })
+      .andWhere('student.id != :studentId', { studentId })
+      .getMany();
+  
+    return classmates;
   }
 
   async obtenerTodosEstudiantes() {

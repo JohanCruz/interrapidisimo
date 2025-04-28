@@ -1,14 +1,6 @@
 import { DataSource } from "typeorm";
 import * as dotenv from "dotenv";
 
-console.log(
-  "host:",process.env.DB_HOST,
-  "port:",process.env.DB_PORT,
-  "user:",process.env.DB_USER,
-  "pass:",process.env.DB_PASSWORD,
-  "database:",process.env.DB_NAME
-
-);
 
 export const dataSource = new DataSource({
   type: "mysql",
@@ -22,7 +14,7 @@ export const dataSource = new DataSource({
   //database: process.env.DB_NAME || "uni",
   
   synchronize: true,
-  logging: true,
+  logging: false, // <--- Esto oculta las queries
   migrations: [],
   subscribers: [],
 });

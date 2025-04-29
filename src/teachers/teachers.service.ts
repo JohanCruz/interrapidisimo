@@ -5,6 +5,7 @@ import { Teacher } from './entities/teacher.entity';
 import { Subject } from '../subjects/entities/subject.entity';
 import { UsersService } from '../users/users.service';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
+import { CreateTeacherDto } from './dto/create-teacher.dto';
 
 @Injectable()
 export class TeachersService {
@@ -28,14 +29,27 @@ export class TeachersService {
     };
   }
 
-  async create(data: { userId: number }) {
-    const user = await this.usersService.findById(data.userId);
+  async create(createTeacherDto: CreateTeacherDto) {
+    console.log('Creando profesor con datos:', createTeacherDto);
+    
+    // Primero creamos el usuario
+    const user = await this.usersService.create({
+      name: createTeacherDto.name,
+      email: createTeacherDto.email,
+      password: createTeacherDto.password,
+      role: 'teacher'
+    });
 
+    console.log('Usuario creado:', user.id);
+
+    // Luego creamos el profesor
     const teacher = this.teacherRepository.create({
       user: user
     });
 
     const savedTeacher = await this.teacherRepository.save(teacher);
+    console.log('Profesor creado:', savedTeacher.id);
+    
     return this.transformTeacherResponse(savedTeacher);
   }
 
@@ -101,5 +115,44 @@ export class TeachersService {
     teacher.totalSubjects = totalSubjects;
     const updatedTeacher = await this.teacherRepository.save(teacher);
     return this.transformTeacherResponse(updatedTeacher);
+  }
+
+  async remove(id: number) {
+    console.log('Buscando profesor para eliminar:', id);
+    const teacher = await this.teacherRepository.findOne({
+      where: { id },
+      relations: ['user', 'subjects']
+    });
+
+    if (!teacher) {
+      console.log('Profesor no encontrado:', id);
+      throw new NotFoundException('Profesor no encontrado');
+    }
+
+    console.log('Profesor encontrado:', teacher.id);
+
+    // Primero desasociamos las materias del profesor
+    if (teacher.subjects && teacher.subjects.length > 0) {
+      console.log('Desasociando materias del profesor:', teacher.subjects.length);
+      await this.subjectRepository.update(
+        { teacher: { id } },
+        { teacher: null }
+      );
+    }
+
+    // Luego eliminamos el profesor
+    console.log('Eliminando profesor');
+    await this.teacherRepository.remove(teacher);
+
+    // Finalmente eliminamos el usuario asociado
+    if (teacher.user) {
+      console.log('Eliminando usuario asociado:', teacher.user.id);
+      await this.usersService.remove(teacher.user.id);
+    }
+
+    return {
+      success: true,
+      message: 'Profesor eliminado correctamente'
+    };
   }
 }

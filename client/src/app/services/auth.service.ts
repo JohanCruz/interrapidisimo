@@ -67,10 +67,10 @@ export class AuthService {
   }
 
   register(userData: any, type: 'student' | 'teacher') {
-  if (type === 'student') {
-    return this.http.post('/api/students/registro', userData);
-  } else {
-    return this.http.post('/api/teachers', userData);
+    if (type === 'student') {
+      return this.http.post('/api/students', userData);
+    } else {
+      return this.http.post('/api/teachers', userData);
+    }
   }
-}
 }

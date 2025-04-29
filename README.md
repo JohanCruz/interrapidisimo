@@ -53,3 +53,96 @@ para iniciar el servidor frontend es necesario
 cd client
 ng serve
 para levantar angular
+
+
+para hacer test rapido de todos los end points
+
+post http://localhost:3000/api/seeders/test
+
+body json 
+{
+    "count": 5
+}
+
+recibe 
+{
+    "message": "Pruebas completadas exitosamente y datos limpiados",
+    "data": {
+        "users": 5,
+        "teachers": 3,
+        "students": 2,
+        "subjects": 5
+    },
+    "testResults": [
+        {
+            "endpoint": "GET /api/teachers/:id",
+            "status": "ÉXITO",
+            "details": "Profesor encontrado correctamente"
+        },
+        {
+            "endpoint": "PUT /api/teachers/:id",
+            "status": "ÉXITO",
+            "details": "Profesor actualizado correctamente"
+        },
+        {
+            "endpoint": "GET /api/teachers/:id/subjects",
+            "status": "ÉXITO",
+            "details": "Materias del profesor obtenidas correctamente"
+        },
+        {
+            "endpoint": "GET /api/students/:id",
+            "status": "ÉXITO",
+            "details": "Estudiante encontrado correctamente"
+        },
+        {
+            "endpoint": "GET /api/students/:id/subjects",
+            "status": "ÉXITO",
+            "details": "Materias del estudiante obtenidas correctamente"
+        },
+        {
+            "endpoint": "GET /api/subjects/:id",
+            "status": "ÉXITO",
+            "details": "Materia encontrada correctamente"
+        },
+        {
+            "endpoint": "PUT /api/subjects/:id",
+            "status": "ÉXITO",
+            "details": "Materia actualizada correctamente"
+        },
+        {
+            "endpoint": "GET /api/subjects/:id/stats",
+            "status": "ÉXITO",
+            "details": "Estadísticas de la materia obtenidas correctamente"
+        },
+        {
+            "endpoint": "GET /api/subjects/available",
+            "status": "ÉXITO",
+            "details": "Materias disponibles obtenidas correctamente"
+        },
+        {
+            "endpoint": "POST /api/students/:id/subjects/:subjectId/enroll",
+            "status": "ÉXITO",
+            "details": "Inscripción exitosa"
+        },
+        {
+            "endpoint": "POST /api/students/:id/subjects/:subjectId/drop",
+            "status": "ÉXITO",
+            "details": "Inscripción cancelada exitosamente"
+        },
+        {
+            "endpoint": "DELETE /api/teachers/:id",
+            "status": "ÉXITO",
+            "details": "Profesor eliminado correctamente"
+        },
+        {
+            "endpoint": "DELETE /api/subjects/:id",
+            "status": "ÉXITO",
+            "details": "Materia eliminada correctamente"
+        },
+        {
+            "endpoint": "DELETE /api/students/:id",
+            "status": "ÉXITO",
+            "details": "Estudiante eliminado correctamente"
+        }
+    ]
+}

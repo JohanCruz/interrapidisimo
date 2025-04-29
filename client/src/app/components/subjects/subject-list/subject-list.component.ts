@@ -36,7 +36,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
                   <p class="text-gray-600">Código: {{subject.code}}</p>
                   <p class="text-gray-600">Créditos: {{subject.credits}}</p>
                   <p class="text-gray-600 mt-2">
-                    Profesor: {{subject.teacher?.name || 'Sin asignar'}}
+                    Profesor: {{subject.teacher?.user?.name || 'Sin asignar'}}
                   </p>
                 </div>
                 <div *ngIf="isTeacher" class="flex gap-2">
@@ -159,7 +159,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
                   <p class="text-gray-600">Código: {{subject.code}}</p>
                   <p class="text-gray-600">Créditos: {{subject.credits}}</p>
                   <p class="text-gray-600 mt-2">
-                    Profesor: {{subject.teacher?.name || 'Sin asignar'}}
+                    Profesor: {{subject.teacher?.user?.name || 'Sin asignar'}}
                   </p>
                   
                   <!-- Lista de estudiantes si está inscrito -->
@@ -425,14 +425,26 @@ export class SubjectListComponent implements OnInit {
   }
 
   unenrollFromSubject(subjectId: number) {
+    console.log('Intentando desinscribir estudiante:', this.studentId, 'de la materia:', subjectId);
     this.subjectService.unenrollStudent(this.studentId, subjectId).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Desinscripción exitosa:', response);
         this.loadEnrolledSubjects();
         this.loadSubjects();
       },
       error: (error) => {
         console.error('Error al cancelar inscripción:', error);
-        this.errorMessage = 'Error al cancelar la inscripción';
+        let errorMessage = 'Error al cancelar la inscripción';
+        
+        if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.status === 404) {
+          errorMessage = 'No se encontró el estudiante o la materia';
+        } else if (error.status === 400) {
+          errorMessage = 'No se puede cancelar la inscripción en este momento';
+        }
+        
+        this.errorMessage = errorMessage;
       }
     });
   }

@@ -5,17 +5,26 @@ import { SeedersService } from './seeders.service';
 export class SeedersController {
   constructor(private readonly seedersService: SeedersService) {}
 
-  @Post()
-  async seed(@Body() data: { 
-    cursos: string[]; 
-    profesores: number; 
-    estudiantes: number 
+  @Post('test')
+  async runTests(@Body('count') count: number = 10) {
+    return this.seedersService.runTests(count);
+  }
+
+  @Post('')
+  async seedData(@Body() data: { 
+    cursos: string[];
+    profesores: number;
+    usuarios: number;
+    estudiantes: number;
   }) {
-    return await this.seedersService.seed({
-      courses: data.cursos.length,
+    // Convertir los nombres de propiedades de español a inglés
+    const convertedData = {
+      courseNames: data.cursos,
       teachers: data.profesores,
       students: data.estudiantes,
-      courseNames: data.cursos
-    });
+      courses: data.cursos.length
+    };
+    
+    return this.seedersService.seed(convertedData);
   }
 }

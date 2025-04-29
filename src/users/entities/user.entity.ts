@@ -19,6 +19,9 @@ export class User {
   @Column({ nullable: true })
   token: string;
 
+  @Column({ default: 'student' })
+  role: string;
+
   @OneToOne(() => Student, student => student.user)
   student: Student;
 

@@ -16,6 +16,9 @@ export class Subject {
   @Column()
   credits: number;
 
+  @Column({ nullable: true })
+  description: string;
+
   @ManyToOne(() => Teacher, teacher => teacher.subjects)
   teacher: Teacher;
 

@@ -108,11 +108,25 @@ export class SubjectService {
     );
   }
 
-  unenrollStudent(studentId: number, subjectId: number) {
+  unenrollStudent(studentId: number, subjectId: number): Observable<any> {
+    console.log('Desinscribiendo estudiante:', studentId, 'de materia:', subjectId);
     return this.http.post(`${this.apiUrl}/students/${studentId}/subjects/${subjectId}/drop`, {}, {
       headers: this.getHeaders()
     }).pipe(
-      catchError(this.handleError)
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error al desinscribir:', error);
+        let errorMessage = 'Error al desinscribir materia';
+        if (error.error instanceof ErrorEvent) {
+          errorMessage = error.error.message;
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.status === 404) {
+          errorMessage = 'No se encontró el estudiante o la materia';
+        } else if (error.status === 400) {
+          errorMessage = 'No se puede cancelar la inscripción en este momento';
+        }
+        return throwError(() => new Error(errorMessage));
+      })
     );
   }
 }

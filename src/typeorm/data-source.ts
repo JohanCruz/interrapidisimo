@@ -14,4 +14,12 @@ export const dataSource = new DataSource({
   logging: false, // <--- Esto oculta las queries
   migrations: [],
   subscribers: [],
+  
+  // Configuración del pool de conexiones
+  extra: {
+    connectionLimit: 10, // Limita el número máximo de conexiones
+    connectTimeout: 60000, // 60 segundos de timeout para la conexión
+    acquireTimeout: 60000, // 60 segundos de timeout para adquirir una conexión
+    waitForConnections: true, // Esperar a que haya conexiones disponibles
+  },
 });

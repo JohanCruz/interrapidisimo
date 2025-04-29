@@ -5,7 +5,13 @@ export interface Subject {
   credits: number;
   teacher?: {
     id: number;
-    name: string;
+    totalSubjects: number;
+    department: string | null;
+    salary: number | null;
+    user: {
+      id: number;
+      name: string;
+    };
   };
   students?: {
     id: number;

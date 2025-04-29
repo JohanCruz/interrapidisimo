@@ -1,17 +1,21 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SeedersController } from './seeders.controller';
 import { SeedersService } from './seeders.service';
-import { Student } from '../students/entities/student.entity';
-import { Teacher } from '../teachers/entities/teacher.entity';
-import { Subject } from '../subjects/entities/subject.entity';
+import { SeedersController } from './seeders.controller';
 import { User } from '../users/entities/user.entity';
+import { Teacher } from '../teachers/entities/teacher.entity';
+import { Student } from '../students/entities/student.entity';
+import { Subject } from '../subjects/entities/subject.entity';
+import { HttpModule } from '@nestjs/axios';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Student, Teacher, Subject, User])
+    TypeOrmModule.forFeature([User, Teacher, Student, Subject]),
+    HttpModule,
+    AuthModule,
   ],
   controllers: [SeedersController],
-  providers: [SeedersService]
+  providers: [SeedersService],
 })
 export class SeedersModule {}

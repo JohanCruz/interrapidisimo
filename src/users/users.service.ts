@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -13,7 +14,7 @@ export class UsersService {
     private jwtService: JwtService,
   ) {}
 
-  async create(userData: { name: string; email: string; password: string }) {
+  async create(userData: { name: string; email: string; password: string; role?: string }) {
     const existingUser = await this.usersRepository.findOne({
       where: { email: userData.email }
     });
@@ -27,6 +28,7 @@ export class UsersService {
     const user = this.usersRepository.create({
       ...userData,
       password: hashedPassword,
+      role: userData.role || 'student'
     });
 
     const savedUser = await this.usersRepository.save(user);
@@ -68,39 +70,42 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, updateData: { name?: string; email?: string; password?: string }) {
+  async update(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.findById(id);
-
-    if (updateData.email && updateData.email !== user.email) {
-      const existingUser = await this.usersRepository.findOne({
-        where: { email: updateData.email }
-      });
-
-      if (existingUser) {
-        throw new ConflictException('El email ya está registrado');
-      }
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
     }
 
-    const updateFields: any = {};
-    
-    if (updateData.name) {
-      updateFields.name = updateData.name;
-    }
-    
-    if (updateData.email) {
-      updateFields.email = updateData.email;
-    }
-    
-    if (updateData.password) {
-      updateFields.password = await bcrypt.hash(updateData.password, 10);
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
-    await this.usersRepository.update(id, updateFields);
-
-    return this.findById(id);
+    Object.assign(user, updateUserDto);
+    return this.usersRepository.save(user);
   }
 
   async updateToken(id: number, token: string) {
     await this.usersRepository.update(id, { token });
+  }
+
+  async remove(id: number) {
+    console.log('Buscando usuario para eliminar:', id);
+    const user = await this.usersRepository.findOne({
+      where: { id }
+    });
+
+    if (!user) {
+      console.log('Usuario no encontrado:', id);
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    console.log('Usuario encontrado:', user.id);
+    console.log('Eliminando usuario');
+    await this.usersRepository.remove(user);
+
+    return {
+      success: true,
+      message: 'Usuario eliminado correctamente'
+    };
   }
 } 

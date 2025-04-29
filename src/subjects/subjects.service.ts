@@ -139,12 +139,19 @@ export class SubjectsService {
 
   async remove(id: number) {
     const subject = await this.findOne(id);
+    console.log("encontrando id",id, subject);
     
-    // Actualizar totalSubjects del profesor
-    await this.teacherRepository.update(subject.teacher.id, {
-      totalSubjects: subject.teacher.totalSubjects - 1
-    });
+    // Eliminar todas las suscripciones de estudiantes
+    if (subject.students && subject.students.length > 0) {
+      subject.students = [];
+      await this.subjectRepository.save(subject);
+    }
 
+    console.log("eliminadas las suscripciones");
+    
+    
+    
+    console.log("eliminadas las suscripciones 2");
     await this.subjectRepository.remove(subject);
     return { message: 'Materia eliminada exitosamente' };
   }

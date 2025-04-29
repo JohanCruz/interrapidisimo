@@ -1,1 +1,8 @@
 <p>subject-list works!</p>
+
+<div class="subject-info">
+  <p><strong>Código:</strong> {{subject.code}}</p>
+  <p><strong>Créditos:</strong> {{subject.credits}}</p>
+  <p><strong>Profesor:</strong> {{subject.teacher?.user?.name || 'Sin asignar'}}</p>
+  <p><strong>Estudiantes inscritos:</strong> {{subject.students?.length || 0}}</p>
+</div>

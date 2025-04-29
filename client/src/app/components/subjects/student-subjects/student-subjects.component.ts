@@ -30,7 +30,9 @@ import { Router } from '@angular/router';
               <h5 class="font-semibold text-sm text-gray-700">Compañeros de clase:</h5>
               <ul class="list-disc pl-5 text-sm">
                 <li *ngFor="let student of subject.students">
-                  {{student.user?.name}}
+                  <ng-container *ngIf="student.id !== studentId">
+                    {{student.user?.name}}
+                  </ng-container>
                 </li>
               </ul>
             </div>

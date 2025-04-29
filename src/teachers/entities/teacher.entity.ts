@@ -16,4 +16,10 @@ export class Teacher {
 
   @Column({ default: 0 })
   totalSubjects: number;
+
+  @Column({ nullable: true })
+  department: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  salary: number;
 } 

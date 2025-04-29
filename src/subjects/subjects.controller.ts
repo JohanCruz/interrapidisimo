@@ -15,6 +15,11 @@ export class SubjectsController {
     return this.subjectsService.findAll();
   }
 
+  @Get('available')
+  getAvailableSubjects() {
+    return this.subjectsService.getAvailableSubjects();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.subjectsService.findOne(id);
@@ -35,11 +40,8 @@ export class SubjectsController {
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
+    console.log(" id ----",id);
+    
     return this.subjectsService.remove(id);
-  }
-
-  @Get('available')
-  getAvailableSubjects() {
-    return this.subjectsService.getAvailableSubjects();
   }
 }

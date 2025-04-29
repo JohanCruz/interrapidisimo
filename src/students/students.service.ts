@@ -48,18 +48,18 @@ export class StudentsService {
     return student;
   }
 
-  async enrollSubject(userId: number, subjectId: number) {
-    console.log('Intentando inscribir usuario:', userId, 'en materia:', subjectId);
+  async enrollSubject(studentId: number, subjectId: number) {
+    console.log('Intentando inscribir estudiante:', studentId, 'en materia:', subjectId);
 
     try {
       // Primero obtenemos el estudiante con todas sus relaciones
       const student = await this.studentRepository.findOne({
-        where: { user: { id: userId } },
+        where: { id: studentId },
         relations: ['user', 'subjects', 'subjects.teacher', 'subjects.teacher.user']
       });
 
       if (!student) {
-        console.log('Estudiante no encontrado para el usuario:', userId);
+        console.log('Estudiante no encontrado:', studentId);
         throw new NotFoundException('Estudiante no encontrado');
       }
 
@@ -168,8 +168,14 @@ export class StudentsService {
         return [];
       }
 
+      // Filtramos al estudiante actual de la lista de compañeros en cada materia
+      const subjectsWithFilteredStudents = student.subjects.map(subject => ({
+        ...subject,
+        students: subject.students.filter(s => s.user.id !== userId)
+      }));
+
       // Log para depuración
-      student.subjects.forEach(subject => {
+      subjectsWithFilteredStudents.forEach(subject => {
         console.log('Detalles de materia inscrita:', {
           id: subject.id,
           name: subject.name,
@@ -180,25 +186,25 @@ export class StudentsService {
         });
       });
 
-      // Devolvemos las materias directamente sin transformar
-      return student.subjects;
+      // Devolvemos las materias con la lista de estudiantes filtrada
+      return subjectsWithFilteredStudents;
     } catch (error) {
       console.error('Error al obtener materias inscritas:', error);
       throw error;
     }
   }
 
-  async dropSubject(userId: number, subjectId: number) {
-    console.log('Intentando cancelar inscripción del usuario:', userId, 'en la materia:', subjectId);
+  async dropSubject(studentId: number, subjectId: number) {
+    console.log('Intentando cancelar inscripción del estudiante:', studentId, 'en la materia:', subjectId);
 
     try {
       const student = await this.studentRepository.findOne({
-        where: { user: { id: userId } },
+        where: { id: studentId },
         relations: ['subjects', 'subjects.teacher', 'subjects.teacher.user', 'user']
       });
 
       if (!student) {
-        console.log('Estudiante no encontrado para el usuario:', userId);
+        console.log('Estudiante no encontrado:', studentId);
         throw new NotFoundException('Estudiante no encontrado');
       }
 
@@ -230,7 +236,11 @@ export class StudentsService {
 
       console.log('Inscripción cancelada exitosamente');
 
-      return subjectToUpdate;
+      return {
+        success: true,
+        message: 'Inscripción cancelada exitosamente',
+        subject: subjectToUpdate
+      };
     } catch (error) {
       console.error('Error al cancelar inscripción:', error);
       if (error instanceof NotFoundException) {
@@ -425,5 +435,52 @@ export class StudentsService {
       }
       throw new BadRequestException('Error al obtener compañeros de clase: ' + error.message);
     }
+  }
+
+  async findByUserId(userId: number) {
+    console.log('Buscando estudiante por ID de usuario:', userId);
+    const student = await this.studentRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user', 'subjects', 'subjects.teacher', 'subjects.teacher.user']
+    });
+
+    if (!student) {
+      console.log('Estudiante no encontrado para el usuario:', userId);
+      return null;
+    }
+
+    console.log('Estudiante encontrado:', student.id);
+    return student;
+  }
+
+  async remove(id: number) {
+    console.log('Buscando estudiante para eliminar:', id);
+    const student = await this.studentRepository.findOne({
+      where: { id },
+      relations: ['user', 'subjects']
+    });
+
+    if (!student) {
+      console.log('Estudiante no encontrado:', id);
+      throw new NotFoundException('Estudiante no encontrado');
+    }
+
+    console.log('Estudiante encontrado:', student.id);
+    console.log('Eliminando relaciones con materias');
+    student.subjects = [];
+    await this.studentRepository.save(student);
+
+    console.log('Eliminando estudiante');
+    await this.studentRepository.remove(student);
+
+    if (student.user) {
+      console.log('Eliminando usuario asociado');
+      await this.usersService.remove(student.user.id);
+    }
+
+    return {
+      success: true,
+      message: 'Estudiante eliminado correctamente'
+    };
   }
 } 

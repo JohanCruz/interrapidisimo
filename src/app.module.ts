@@ -27,6 +27,13 @@ console.log(StudentsModule,
       ...dataSource.options,
       autoLoadEntities: true,
       entities: [__dirname + "/**/*.entity{.ts,.js}"],
+      // Configuración adicional para el pool de conexiones
+      extra: {
+        connectionLimit: 10,
+        connectTimeout: 60000, // 60 segundos de timeout para la conexión
+        acquireTimeout: 60000, // 60 segundos de timeout para adquirir una conexión
+        waitForConnections: true, // Esperar a que haya conexiones disponibles
+      },
     }),
     UsersModule,
     StudentsModule,

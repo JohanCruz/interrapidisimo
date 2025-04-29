@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Query, NotFoundException } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UsersService } from '../users/users.service';
@@ -64,7 +64,12 @@ export class StudentsController {
     @Param('subjectId') subjectId: string,
   ) {
     console.log('Recibida solicitud de inscripción:', { studentId: id, subjectId });
-    const result = await this.studentsService.enrollSubject(+id, +subjectId);
+    // Primero obtenemos el estudiante por el ID del usuario
+    const student = await this.studentsService.findByUserId(+id);
+    if (!student) {
+      throw new NotFoundException('Estudiante no encontrado');
+    }
+    const result = await this.studentsService.enrollSubject(student.id, +subjectId);
     console.log('Resultado de inscripción:', result);
     return result;
   }
@@ -75,7 +80,15 @@ export class StudentsController {
     @Param('id') id: string,
     @Param('subjectId') subjectId: string,
   ) {
-    return await this.studentsService.dropSubject(+id, +subjectId);
+    console.log('Recibida solicitud de desinscripción:', { studentId: id, subjectId });
+    // Primero obtenemos el estudiante por el ID del usuario
+    const student = await this.studentsService.findByUserId(+id);
+    if (!student) {
+      throw new NotFoundException('Estudiante no encontrado');
+    }
+    const result = await this.studentsService.dropSubject(student.id, +subjectId);
+    console.log('Resultado de desinscripción:', result);
+    return result;
   }
 
   @Get(':id/stats')
@@ -97,5 +110,13 @@ export class StudentsController {
   ) {
     console.log('Obteniendo compañeros de clase para el usuario:', id, 'en la materia:', subjectId);
     return await this.studentsService.getClassmates(+id, +subjectId);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    console.log('Intentando eliminar estudiante:', id);
+    const result = await this.studentsService.remove(+id);
+    console.log('Resultado de eliminación:', result);
+    return result;
   }
 } 

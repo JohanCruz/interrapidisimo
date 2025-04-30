@@ -713,8 +713,8 @@ export class SeedersService {
       // Limpiar datos existentes
       await this.subjectRepository.delete({});
       await this.studentRepository.delete({});
-      //await this.teacherRepository.delete({});
-      //await this.userRepository.delete({});
+      await this.teacherRepository.delete({});
+      await this.userRepository.delete({});
 
       // Crear profesores
       const teachers = [];
